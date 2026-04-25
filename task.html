@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Task Manager</title>
+
+<style>
+body {
+    font-family: 'Segoe UI';
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    text-align: center;
+}
+
+.container {
+    width: 400px;
+    margin: 40px auto;
+    background: rgba(255,255,255,0.7);
+    backdrop-filter: blur(10px);
+    padding: 20px;
+    border-radius: 20px;
+}
+
+input {
+    padding: 10px;
+    width: 70%;
+    border-radius: 10px;
+    border: none;
+}
+
+button {
+    padding: 10px;
+    border-radius: 10px;
+    border: none;
+    cursor: pointer;
+}
+
+.add {
+    background: #00b894;
+    color: white;
+}
+
+.delete {
+    background: #d63031;
+    color: white;
+}
+
+.complete {
+    background: #0984e3;
+    color: white;
+}
+
+ul {
+    padding: 0;
+}
+
+li {
+    list-style: none;
+    margin: 10px;
+    padding: 10px;
+    background: white;
+    border-radius: 10px;
+}
+
+.done {
+    text-decoration: line-through;
+    color: gray;
+}
+
+.filters button {
+    margin: 5px;
+    background: black;
+    color: white;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+<h2>Task Manager</h2>
+
+<input id="task" placeholder="Enter Task">
+<button class="add" onclick="addTask()">Add</button>
+
+<div class="filters">
+<button onclick="filter('all')">All</button>
+<button onclick="filter('done')">Completed</button>
+<button onclick="filter('pending')">Pending</button>
+</div>
+
+<ul id="list"></ul>
+
+</div>
+
+<script>
+
+let tasks = JSON.parse(localStorage.getItem("tasks")) || [];
+let currentFilter = "all";
+
+function save() {
+    localStorage.setItem("tasks", JSON.stringify(tasks));
+}
+
+function addTask() {
+    let task = document.getElementById("task").value;
+    if(task === "") return;
+
+    tasks.push({
+        text: task,
+        done: false,
+        time: new Date().toLocaleString()
+    });
+
+    save();
+    load();
+    document.getElementById("task").value = "";
+}
+
+function load() {
+    let list = document.getElementById("list");
+    list.innerHTML = "";
+
+    let filtered = tasks.filter(t => {
+        if(currentFilter === "all") return true;
+        if(currentFilter === "done") return t.done;
+        if(currentFilter === "pending") return !t.done;
+    });
+
+    filtered.forEach((t, i) => {
+        let li = document.createElement("li");
+        li.className = t.done ? "done" : "";
+
+        li.innerHTML = `
+            ${t.text}<br>
+            <small>${t.time}</small><br>
+            <button class="complete" onclick="toggle(${i})">Done</button>
+            <button class="delete" onclick="del(${i})">Delete</button>
+        `;
+
+        list.appendChild(li);
+    });
+}
+
+function toggle(i) {
+    tasks[i].done = !tasks[i].done;
+    save();
+    load();
+}
+
+function del(i) {
+    tasks.splice(i, 1);
+    save();
+    load();
+}
+
+function filter(type) {
+    currentFilter = type;
+    load();
+}
+
+load();
+
+</script>
+
+</body>
+</html>
